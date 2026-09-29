@@ -1,112 +1,114 @@
-# Cornice digitale interattiva con ESP32
+# Interactive Digital Photo Frame with ESP32
 
-Una cornice digitale basata su **ESP32** che si accende quando qualcuno si avvicina.
-Un sensore a ultrasuoni rileva la presenza, il display TFT mostra una foto (o due) presa da una scheda SD, con sopra una frase casuale e la lettura di temperatura e umidità.
+A digital photo frame based on an **ESP32** that wakes up when someone walks by.
+An ultrasonic sensor detects presence, and the TFT display shows one or two photos from an SD card, overlaid with a random message and the current temperature and humidity.
 
-## Come funziona
+## How it works
 
-1. Ogni 500 ms il sensore a ultrasuoni misura la distanza.
-2. Se la distanza è **inferiore a 65 cm**, il display si accende:
-   - con probabilità 50% mostra **una foto orizzontale** a schermo intero (480x320);
-   - con probabilità 50% mostra **due foto verticali affiancate** (240x320 ciascuna), sempre diverse tra loro.
-3. Sopra le immagini vengono scritti:
-   - una **frase casuale** in alto a sinistra (rosso, con a capo automatico);
-   - **temperatura e umidità** (DHT11) in basso a destra.
-4. Quando nessuno è più rilevato per **10 secondi**, lo schermo si spegne e il backlight va a zero.
+1. Every 500 ms the ultrasonic sensor measures the distance.
+2. If the distance is **below 65 cm**, the display turns on:
+   - 50% of the time it shows **one landscape photo** at full screen (480x320);
+   - 50% of the time it shows **two portrait photos** side by side (240x320 each), always different from each other.
+3. On top of the images it draws:
+   - a **random phrase** in the top-left corner (red, with automatic word wrapping);
+   - **temperature and humidity** (DHT11) in the bottom-right corner.
+4. When nobody has been detected for **10 seconds**, the screen is cleared and the backlight is turned off.
 
-> Nota: frase e dati del DHT11 vengono disegnati solo se la lettura del sensore va a buon fine.
-> Se il DHT11 non risponde, compaiono solo le foto.
+> Note: the phrase and the DHT11 readings are drawn only if the sensor read succeeds.
+> If the DHT11 does not respond, only the photos are shown.
 
 ## Hardware
 
-- ESP32 (es. ESP32 Dev Module)
-- Display TFT SPI 480x320 (es. driver ILI9488 o ST7796 — **TODO: indicare il modello usato**)
-- Modulo microSD (SPI)
-- Sensore a ultrasuoni (tipo HC-SR04)
-- Sensore DHT11 (temperatura e umidità)
+- ESP32 (e.g. ESP32 Dev Module)
+- 480x320 SPI TFT display (e.g. ILI9488 or ST7796 driver — **TODO: specify the model used**)
+- microSD card module (SPI)
+- Ultrasonic sensor (HC-SR04 type)
+- DHT11 temperature and humidity sensor
 
-## Collegamenti
+## Wiring
 
-| Componente | Segnale | Pin ESP32 |
+| Component | Signal | ESP32 pin |
 |---|---|---|
-| Sensore a ultrasuoni | TRIG | GPIO 26 |
-| Sensore a ultrasuoni | ECHO | GPIO 35 |
+| Ultrasonic sensor | TRIG | GPIO 26 |
+| Ultrasonic sensor | ECHO | GPIO 35 |
 | DHT11 | DATA | GPIO 32 |
-| Backlight TFT (PWM) | LED | GPIO 2 |
-| Modulo SD | SCK | GPIO 25 |
-| Modulo SD | MISO | GPIO 33 |
-| Modulo SD | MOSI | GPIO 13 |
-| Modulo SD | CS | GPIO 4 |
-| Display TFT | vedi sotto | **TODO** |
+| TFT backlight (PWM) | LED | GPIO 2 |
+| SD module | SCK | GPIO 25 |
+| SD module | MISO | GPIO 33 |
+| SD module | MOSI | GPIO 13 |
+| SD module | CS | GPIO 4 |
+| TFT display | see below | **TODO** |
 
-**Bus SPI separati.** La SD usa il bus **HSPI** con i pin sopra. Il display TFT usa il bus **VSPI** (pin di default dell'ESP32: SCK 18, MISO 19, MOSI 23), gestito da TFT_eSPI.
+**Separate SPI buses.** The SD card uses the **HSPI** bus with the pins above. The TFT display uses the **VSPI** bus (ESP32 default pins: SCK 18, MISO 19, MOSI 23), handled by TFT_eSPI.
 
-**Attenzione al pin ECHO.** L'ESP32 lavora a 3,3 V. Se il tuo sensore è un HC-SR04 alimentato a 5 V, l'uscita ECHO va abbassata con un partitore di tensione (ad esempio 1 kΩ + 2 kΩ) oppure si usa una versione a 3,3 V del sensore.
+**Mind the ECHO pin.** The ESP32 runs at 3.3 V. If your sensor is a 5 V HC-SR04, the ECHO output should be stepped down with a voltage divider (for example 1 kΩ + 2 kΩ) or you should use a 3.3 V version of the sensor.
 
-## Librerie necessarie
+## Required libraries
 
-Da installare tramite il Gestore Librerie di Arduino IDE:
+Install these from the Arduino Library Manager:
 
 - [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) (Bodmer)
 - [JPEGDecoder](https://github.com/Bodmer/JPEGDecoder) (Bodmer)
-- DHT sensor library (Adafruit) e Adafruit Unified Sensor
+- DHT sensor library (Adafruit) and Adafruit Unified Sensor
 
-Incluse nel core ESP32: `SPI`, `SD`, `FS`.
+Bundled with the ESP32 core: `SPI`, `SD`, `FS`.
 
-**Core ESP32 richiesto:** versione **3.x** (lo sketch usa `ledcAttach()`, che non esiste nella 2.x).
+**Required ESP32 core:** version **3.x** (the sketch uses `ledcAttach()`, which does not exist in 2.x).
 
-## Configurazione del display (TFT_eSPI)
+## Display configuration (TFT_eSPI)
 
-TFT_eSPI non legge i pin dallo sketch, ma dal file `User_Setup.h` nella cartella della libreria.
-Nella cartella [`config/`](config/) di questo repository si trova una copia del file usato per questo progetto: sostituiscilo a quello della libreria (`Documenti/Arduino/libraries/TFT_eSPI/User_Setup.h`) prima di compilare.
+TFT_eSPI does not read its pins from the sketch, but from the `User_Setup.h` file inside the library folder.
+The [`config/`](config/) folder of this repository contains a copy of the file used for this project: replace the library's own file with it (`Documents/Arduino/libraries/TFT_eSPI/User_Setup.h`) before compiling.
 
-> **TODO:** aggiungere `config/User_Setup.h` al repository.
+> **TODO:** add `config/User_Setup.h` to the repository.
 
-Il display viene inizializzato con `setRotation(1)` (orizzontale, 480x320).
+The display is initialized with `setRotation(1)` (landscape, 480x320).
 
-## Preparazione della scheda SD
+## Preparing the SD card
 
-Formatta la microSD in **FAT32** e copia nella **root** (senza sottocartelle) le immagini JPEG con questi nomi:
+Format the microSD card as **FAT32** and copy the JPEG images to the **root** (no subfolders) using these names:
 
-| Tipo | Nome file | Risoluzione | Quantità |
+| Type | File names | Resolution | Count |
 |---|---|---|---|
-| Orizzontali | `1o.jpg` … `26o.jpg` | 480x320 | 26 |
-| Verticali | `1v.jpg` … `28v.jpg` | 240x320 | 28 |
+| Landscape | `1o.jpg` … `26o.jpg` | 480x320 | 26 |
+| Portrait | `1v.jpg` … `28v.jpg` | 240x320 | 28 |
 
-Per cambiare il numero di immagini modifica le costanti `NUM_ORIZZ` e `NUM_VERT` nello sketch.
+To change the number of images, edit the `NUM_ORIZZ` and `NUM_VERT` constants in the sketch.
 
-Suggerimenti:
-- usa JPEG **baseline** (non progressive);
-- tieni i file leggeri: ogni immagine viene caricata interamente in RAM prima di essere decodificata (la dimensione e la RAM libera vengono stampate sul monitor seriale).
+Tips:
+- use **baseline** JPEGs (not progressive);
+- keep files small: each image is fully loaded into RAM before being decoded (file size and free RAM are printed on the serial monitor).
 
-## Compilazione e caricamento
+## Building and uploading
 
-1. Clona il repository e apri `official/official.ino` con Arduino IDE.
-2. Installa le librerie e il core ESP32 3.x indicati sopra.
-3. Copia `User_Setup.h` come descritto nella sezione sul display.
-4. Seleziona la scheda **ESP32 Dev Module** e la porta corretta.
-5. Carica lo sketch. Apri il monitor seriale a **9600 baud** per vedere i log.
+1. Clone the repository and open `official/official.ino` in the Arduino IDE.
+2. Install the libraries and the ESP32 core 3.x listed above.
+3. Copy `User_Setup.h` as described in the display section.
+4. Select the **ESP32 Dev Module** board and the correct port.
+5. Upload the sketch. Open the serial monitor at **9600 baud** to see the logs.
 
-## Personalizzazione
+## Customization
 
-| Cosa | Dove nello sketch |
+| What | Where in the sketch |
 |---|---|
-| Distanza di attivazione (65 cm) | `gestisciDisplay()`: `distanza < 65` |
-| Tempo di spegnimento (10 s) | costante `timeout` |
-| Frasi mostrate | array `frasi[]` |
-| Dimensione e colore del testo | `disegnaOverlay()` |
-| Pin dei componenti | costanti in cima al file |
+| Activation distance (65 cm) | `gestisciDisplay()`: `distanza < 65` |
+| Turn-off delay (10 s) | `timeout` constant |
+| Displayed phrases | `frasi[]` array |
+| Text size and color | `disegnaOverlay()` |
+| Component pins | constants at the top of the file |
 
-## Risoluzione dei problemi
+## Troubleshooting
 
-- **Schermo bianco o nero:** controlla `User_Setup.h` (driver e pin del display) e il collegamento del backlight.
-- **`ERRORE: SD non disponibile`:** verifica cablaggio, formattazione FAT32 e che i pin SD corrispondano a quelli sopra.
-- **`ERRORE: impossibile aprire ...`:** il file non esiste o ha un nome diverso da quelli attesi.
-- **`ERRORE: memoria insufficiente`:** l'immagine è troppo pesante, riducine dimensione o qualità.
-- **`ERRORE: decodifica JPEG fallita`:** salva il file come JPEG baseline.
-- **Distanze strane o sempre alte:** controlla l'alimentazione del sensore e il partitore sul pin ECHO.
-- **Nessuna frase o temperatura a schermo:** il DHT11 non risponde, controlla il collegamento sul GPIO 32.
+- **White or black screen:** check `User_Setup.h` (display driver and pins) and the backlight wiring.
+- **`ERRORE: SD non disponibile`:** check wiring, FAT32 formatting, and that the SD pins match the ones above.
+- **`ERRORE: impossibile aprire ...`:** the file is missing or named differently from what the sketch expects.
+- **`ERRORE: memoria insufficiente`:** the image is too large; reduce its size or quality.
+- **`ERRORE: decodifica JPEG fallita`:** re-save the file as a baseline JPEG.
+- **Odd or always-high distances:** check the sensor's power supply and the voltage divider on the ECHO pin.
+- **No phrase or temperature on screen:** the DHT11 is not responding; check the wiring on GPIO 32.
 
-## Licenza
+> The serial log messages in the sketch are in Italian.
 
-**TODO:** scegliere una licenza (ad esempio MIT) e aggiungere il file `LICENSE`.
+## License
+
+**TODO:** choose a license (for example MIT) and add a `LICENSE` file.
