@@ -58,7 +58,7 @@ Bundled with the ESP32 core: `SPI`, `SD`, `FS`.
 ## Display configuration (TFT_eSPI)
 
 TFT_eSPI does not read its pins from the sketch, but from the `User_Setup.h` file inside the library folder.
-The [`config/`](config/) folder of this repository contains a copy of the file used for this project: replace the library's own file with it (`Documents/Arduino/libraries/TFT_eSPI/User_Setup.h`) before compiling.
+The [`config/`] folder of this repository contains a copy of the file used for this project: replace the library's own file with it (`Documents/Arduino/libraries/TFT_eSPI/User_Setup.h`) before compiling.
 
 > **TODO:** add `config/User_Setup.h` to the repository.
 
