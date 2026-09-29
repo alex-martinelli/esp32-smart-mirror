@@ -81,7 +81,7 @@ Tips:
 
 ## Building and uploading
 
-1. Clone the repository and open `official/official.ino` in the Arduino IDE.
+1. Clone the repository and open `main.ino` in the Arduino IDE.
 2. Install the libraries and the ESP32 core 3.x listed above.
 3. Copy `User_Setup.h` as described in the display section.
 4. Select the **ESP32 Dev Module** board and the correct port.
